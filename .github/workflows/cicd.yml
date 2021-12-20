@@ -46,6 +46,8 @@ jobs:
             echo "npm pkg repository: ${NPM_REPOSITORY_PATH}"
             echo "published versions: ${NPM_VERSIONS}"
             echo "npm command to run: ${cmd}"
+            git config user.name "test"
+            git config user.email "test@test.com"
             # create new version and publish
             # Note: this cmd creates a new commit on the branch
             # which is why we want to sync-branch in the next step
