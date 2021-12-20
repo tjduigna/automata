@@ -58,6 +58,7 @@ jobs:
         shell: bash -l {0}
         run: |
             echo "${{ secrets.GITHUB_TOKEN }}" > token.dat
+            echo "${{ secrets.BOT_GITHUB_TOKEN }}" > token.dat
             gh auth login --with-token < token.dat
             NOTES="Release ${{ steps.npm-publish.outputs.published-version }} created by workflow"
             gh release create ${{ steps.npm-publish.outputs.published-version }} --notes "${NOTES}" --prerelease
