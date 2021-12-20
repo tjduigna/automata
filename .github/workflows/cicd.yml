@@ -37,12 +37,6 @@ jobs:
         run: |
             # Determine which npm version command to run based
             # on already published packages and today's date
-            NPM_VERSIONS=""
-            DATE=$(date +%Y.%m.%d)
-            if [[ "${NPM_VERSIONS}" != *"${DATE}"* ]]; then  # did we publish date yet
-                cmd="npm version ${DATE}-0"                  # date's first release
-            else
-                cmd="npm version prerelease"; fi             # pre-release covers it
             echo "npm pkg repository: ${NPM_REPOSITORY_PATH}"
             echo "published versions: ${NPM_VERSIONS}"
             echo "npm command to run: ${cmd}"
@@ -51,7 +45,7 @@ jobs:
             # create new version and publish
             # Note: this cmd creates a new commit on the branch
             # which is why we want to sync-branch in the next step
-            PUBLISHED_VERSION=$(${cmd})
+            PUBLISHED_VERSION="2021.12.20-1"
             echo "::set-output name=published-version::$(echo ${PUBLISHED_VERSION})"
 
       - name: Publish release
