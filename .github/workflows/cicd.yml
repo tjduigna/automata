@@ -1,0 +1,60 @@
+name: CICD
+
+on: [push]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+
+  run-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 16.x]
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v2
+
+  publish:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v2
+
+      - name: Setup NPM
+        uses: actions/setup-node@v2
+
+      - name: Publish release to NPM
+        shell: bash -l {0}
+        id: npm-publish
+        run: |
+            # Determine which npm version command to run based
+            # on already published packages and today's date
+            NPM_VERSIONS=""
+            DATE=$(date +%Y.%m.%d)
+            if [[ "${NPM_VERSIONS}" != *"${DATE}"* ]]; then  # did we publish date yet
+                cmd="npm version ${DATE}-0"                  # date's first release
+            else
+                cmd="npm version prerelease"; fi             # pre-release covers it
+            echo "npm pkg repository: ${NPM_REPOSITORY_PATH}"
+            echo "published versions: ${NPM_VERSIONS}"
+            echo "npm command to run: ${cmd}"
+            # create new version and publish
+            # Note: this cmd creates a new commit on the branch
+            # which is why we want to sync-branch in the next step
+            PUBLISHED_VERSION=$(${cmd})
+            echo "::set-output name=published-version::$(echo ${PUBLISHED_VERSION})"
+
+      - name: Publish release
+        shell: bash -l {0}
+        run: |
+            NOTES="Release ${{ steps.npm-publish.outputs.published-version }} created by workflow"
+            gh release create ${{ steps.npm-publish.outputs.published-version }} --notes "${NOTES}" --prerelease
+
